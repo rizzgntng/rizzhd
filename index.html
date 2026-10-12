@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>rizzhd - HD Enhancer Tool Termux by rizzgntng</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            bg: '#0a0d14',
+                            card: 'rgba(16, 22, 36, 0.7)',
+                            neonCyan: '#00f3ff',
+                            neonPurple: '#9d4edd',
+                            neonPink: '#ff007f',
+                            border: 'rgba(0, 243, 255, 0.2)'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts & FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            background-color: #060913;
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(0, 243, 255, 0.15);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .glow-text {
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.5), 0 0 20px rgba(157, 78, 221, 0.3);
+        }
+
+        /* Before/After Image Slider Styling */
+        .img-slider-container {
+            position: relative;
+            width: 100%;
+            height: 380px;
+            overflow: hidden;
+            border-radius: 12px;
+            user-select: none;
+        }
+
+        @media (min-width: 768px) {
+            .img-slider-container {
+                height: 480px;
+            }
+        }
+
+        .img-slider-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .img-slider-after {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 50%;
+            height: 100%;
+            overflow: hidden;
+            border-right: 3px solid #00f3ff;
+            box-shadow: 2px 0 10px rgba(0, 243, 255, 0.8);
+        }
+
+        .img-slider-after-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .slider-handle {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%) translateX(-50%);
+            left: 50%;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #00f3ff;
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.8);
+            cursor: ew-resize;
+            z-index: 20;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #060913;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+            border: 1px solid rgba(0, 243, 255, 0.2);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00f3ff;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-cyan-500 selection:text-black">
+
+    <!-- Navigation Bar -->
+    <nav class="sticky top-0 z-50 glass-panel border-b border-cyan-500/20 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-purple-600 p-[2px] flex items-center justify-center">
+                    <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
+                        <i class="fa-solid fa-wand-magic-sparkles text-cyan-400 text-lg"></i>
+                    </div>
+                </div>
+                <div>
+                    <span class="font-extrabold text-2xl tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-500 font-mono">
+                        rizzhd
+                    </span>
+                    <span class="text-xs px-2 py-0.5 ml-2 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-800 font-mono">
+                        v2.4
+                    </span>
+                </div>
+            </div>
+            
+            <div class="hidden md:flex space-x-8 text-sm font-semibold tracking-wide">
+                <a href="#simulator" class="hover:text-cyan-400 transition-colors flex items-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles text-cyan-400"></i> Simulator
+                </a>
+                <a href="#scripts" class="hover:text-cyan-400 transition-colors flex items-center gap-2">
+                    <i class="fa-solid fa-terminal text-purple-400"></i> Command Termux
+                </a>
+            </div>
+
+            <div>
+                <a href="https://github.com" target="_blank" class="glass-panel hover:bg-cyan-500/10 text-cyan-400 px-4 py-2 rounded-lg text-sm font-semibold border border-cyan-500/30 flex items-center gap-2 transition-all hover:scale-105">
+                    <i class="fa-brands fa-github text-base"></i> Owner: <span class="text-white font-bold">rizzgntng</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="relative pt-16 pb-20 md:pt-24 md:pb-28 overflow-hidden px-4">
+        <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-cyan-500/15 rounded-full blur-[120px] -z-10 pointer-events-none"></div>
+        <div class="absolute top-1/3 right-10 w-80 h-80 bg-purple-600/15 rounded-full blur-[100px] -z-10 pointer-events-none"></div>
+
+        <div class="max-w-5xl mx-auto text-center space-y-6">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs md:text-sm font-medium tracking-wide">
+                <i class="fa-solid fa-bolt text-yellow-400 animate-pulse"></i> Powered by AI Engine & Real-ESRGAN Termux
+            </div>
+
+            <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-tight">
+                <span class="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-500 glow-text">rizzhd</span> Enhancer Tool
+            </h1>
+
+            <p class="max-w-2xl mx-auto text-slate-300 text-base md:text-lg leading-relaxed">
+                Ubah foto/video buram, pecah, dan berkualitas rendah menjadi super tajam hingga resolusi <span class="text-cyan-400 font-bold">4K/8K</span> langsung melalui terminal Termux. Dikembangkan oleh <span class="text-purple-400 font-semibold underline underline-offset-4 decoration-purple-500">rizzgntng</span>.
+            </p>
+
+            <div class="pt-4 flex flex-wrap justify-center gap-4">
+                <a href="#simulator" class="px-8 py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-extrabold shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 hover:scale-105 transition-all flex items-center gap-3">
+                    <i class="fa-solid fa-play"></i> Coba Simulator Online
+                </a>
+                <a href="#scripts" class="px-8 py-3.5 rounded-xl glass-panel text-cyan-300 hover:text-white font-bold border border-cyan-500/30 hover:border-cyan-400 hover:scale-105 transition-all flex items-center gap-3">
+                    <i class="fa-solid fa-terminal text-cyan-400"></i> Ambil Script Termux
+                </a>
+            </div>
+
+            <!-- Stats Bar -->
+            <div class="pt-12 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+                <div class="glass-card p-4 rounded-xl text-center border border-slate-800">
+                    <h3 class="text-2xl font-bold text-cyan-400 font-mono">100%</h3>
+                    <p class="text-xs text-slate-400 mt-1">Gratis & Open Source</p>
+                </div>
+                <div class="glass-card p-4 rounded-xl text-center border border-slate-800">
+                    <h3 class="text-2xl font-bold text-purple-400 font-mono">Up to 8X</h3>
+                    <p class="text-xs text-slate-400 mt-1">Super Resolution</p>
+                </div>
+                <div class="glass-card p-4 rounded-xl text-center border border-slate-800">
+                    <h3 class="text-2xl font-bold text-pink-400 font-mono">GFPGAN</h3>
+                    <p class="text-xs text-slate-400 mt-1">AI Face Restoration</p>
+                </div>
+                <div class="glass-card p-4 rounded-xl text-center border border-slate-800">
+                    <h3 class="text-2xl font-bold text-emerald-400 font-mono">FFmpeg</h3>
+                    <p class="text-xs text-slate-400 mt-1">Akselerasi Video HD</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Interactive Web Simulator Section -->
+    <section id="simulator" class="py-16 px-4 relative">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-extrabold text-white tracking-tight flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-wand-magic-sparkles text-cyan-400"></i>
+                    Simulator rizzhd Online
+                </h2>
+                <p class="text-slate-400 text-sm mt-2">Uji coba simulasi peningkatan foto Before vs After sebelum dieksekusi di Termux</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                
+                <!-- Left Column: Controls & Upload -->
+                <div class="lg:col-span-5 glass-panel p-6 rounded-2xl border border-cyan-500/20 space-y-6">
+                    <h3 class="text-lg font-bold text-cyan-300 flex items-center gap-2">
+                        <i class="fa-solid fa-sliders"></i> Pengaturan Enhancer
+                    </h3>
+
+                    <!-- Upload Input Area -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-2">UNGGAH FOTO ATAU VIDEO (SIMULASI)</label>
+                        <div id="drop-zone" class="border-2 border-dashed border-cyan-500/40 hover:border-cyan-400 bg-slate-900/50 rounded-xl p-6 text-center cursor-pointer transition-all">
+                            <i class="fa-solid fa-cloud-arrow-up text-3xl text-cyan-400 mb-2"></i>
+                            <p class="text-xs text-slate-300 font-medium">Klik atau tarik file foto di sini</p>
+                            <p class="text-[10px] text-slate-500 mt-1">Mendukung JPG, PNG, WEBP, MP4 (Maks 15MB)</p>
+                            <input type="file" id="file-input" accept="image/*,video/*" class="hidden">
+                        </div>
+                    </div>
+
+                    <!-- Resolution Scale -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-2">TINGKAT SKALA UPSCALE</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button type="button" class="scale-btn active-scale border border-cyan-500 bg-cyan-500/20 text-cyan-300 font-bold py-2 rounded-lg text-sm text-center transition-all" data-scale="2x">2X HD</button>
+                            <button type="button" class="scale-btn border border-slate-700 bg-slate-900 text-slate-400 font-bold py-2 rounded-lg text-sm text-center hover:border-cyan-500 transition-all" data-scale="4x">4X Ultra HD</button>
+                            <button type="button" class="scale-btn border border-slate-700 bg-slate-900 text-slate-400 font-bold py-2 rounded-lg text-sm text-center hover:border-cyan-500 transition-all" data-scale="8x">8X 4K Crisp</button>
+                        </div>
+                    </div>
+
+                    <!-- Feature Toggles -->
+                    <div class="space-y-3">
+                        <label class="block text-xs font-semibold text-slate-300">FITUR AI OPTIMIZATION</label>
+
+                        <div class="flex items-center justify-between p-3 rounded-xl bg-slate-900/60 border border-slate-800">
+                            <div class="flex items-center gap-3">
+                                <i class="fa-solid fa-user-check text-purple-400"></i>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-200">Face Restoration (GFPGAN)</p>
+                                    <p class="text-[10px] text-slate-400">Mempertajam dan memperjelas wajah buram</p>
+                                </div>
+                            </div>
+                            <input type="checkbox" id="toggle-face" checked class="w-4 h-4 accent-cyan-400 cursor-pointer">
+                        </div>
+
+                        <div class="flex items-center justify-between p-3 rounded-xl bg-slate-900/60 border border-slate-800">
+                            <div class="flex items-center gap-3">
+                                <i class="fa-solid fa-droplet-slash text-cyan-400"></i>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-200">Noise Reduction (Denoise)</p>
+                                    <p class="text-[10px] text-slate-400">Menghilangkan bintik/noise pada foto malam</p>
+                                </div>
+                            </div>
+                            <input type="checkbox" id="toggle-denoise" checked class="w-4 h-4 accent-cyan-400 cursor-pointer">
+                        </div>
+                    </div>
+
+                    <!-- Action Button -->
+                    <button id="btn-process" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 via-purple-600 to-pink-500 text-white font-extrabold shadow-lg hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-circle-play"></i> TERAPKAN PROSES HD
+                    </button>
+                </div>
+
+                <!-- Right Column: Interactive Before/After Preview -->
+                <div class="lg:col-span-7 glass-panel p-6 rounded-2xl border border-cyan-500/20">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-split-screen text-purple-400"></i> Live Comparison Preview
+                        </h3>
+                        <span id="scale-badge" class="px-2.5 py-1 rounded-md bg-purple-900/60 text-purple-300 text-xs font-mono border border-purple-700">
+                            Mode: 2X Resolution
+                        </span>
+                    </div>
+
+                    <!-- Slider Wrapper -->
+                    <div class="img-slider-container border border-cyan-500/30" id="slider-wrapper">
+                        <!-- Before / Low Quality Background Image -->
+                        <div class="img-slider-overlay" id="img-before" style="background-image: url('https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=20&blur=5');"></div>
+                        
+                        <!-- After / High Quality Overlay Image -->
+                        <div class="img-slider-after" id="img-after-wrapper">
+                            <div class="img-slider-after-img" id="img-after" style="background-image: url('https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1200&q=95');"></div>
+                        </div>
+
+                        <!-- Draggable Slider Control Line -->
+                        <div class="slider-handle" id="slider-handle">
+                            <i class="fa-solid fa-arrows-left-right text-xs"></i>
+                        </div>
+
+                        <!-- Badge Overlay -->
+                        <div class="absolute top-3 left-3 bg-red-900/80 text-red-200 text-[10px] font-bold px-2 py-1 rounded backdrop-blur">BEFORE (BURAM)</div>
+                        <div class="absolute top-3 right-3 bg-emerald-900/80 text-emerald-200 text-[10px] font-bold px-2 py-1 rounded backdrop-blur">AFTER (rizzhd AI)</div>
+                    </div>
+
+                    <div class="mt-4 flex items-center justify-between text-xs text-slate-400">
+                        <span><i class="fa-solid fa-info-circle text-cyan-400"></i> Geser garis tengah untuk membandingkan perbaikan.</span>
+                        <span id="status-info" class="text-emerald-400 font-semibold">Ready</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Termux Commands & Installation Scripts -->
+    <section id="scripts" class="py-16 px-4 bg-slate-950/60 relative">
+        <div class="max-w-5xl mx-auto space-y-8">
+            <div class="text-center">
+                <span class="text-xs uppercase tracking-widest text-cyan-400 font-mono font-bold">Official Repository by rizzgntng</span>
+                <h2 class="text-3xl font-extrabold text-white mt-1">Perintah & Script Instalasi Termux</h2>
+                <p class="text-slate-400 text-sm mt-2">Salin perintah di bawah ini dan tempelkan pada terminal Termux Android Anda.</p>
+            </div>
+
+            <!-- Terminal Window Card -->
+            <div class="glass-panel rounded-2xl overflow-hidden border border-cyan-500/30 shadow-2xl">
+                <!-- Terminal Header -->
+                <div class="bg-slate-900 px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                        <span class="ml-2 text-xs font-mono text-slate-400">termux ~ rizzhd-installer</span>
+                    </div>
+                    <button id="copy-btn" class="text-xs bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 px-3 py-1.5 rounded-lg border border-cyan-500/40 flex items-center gap-1.5 transition-all">
+                        <i class="fa-regular fa-copy"></i> <span>Salin Semua Perintah</span>
+                    </button>
+                </div>
+
+                <!-- Terminal Body -->
+                <div class="p-5 font-mono text-xs md:text-sm bg-slate-950/90 text-slate-200 overflow-x-auto">
+<pre id="code-block" class="leading-relaxed"><code><span class="text-slate-500"># 1. Update & Upgrade Paket Termux</span>
+pkg update && pkg upgrade -y
+
+<span class="text-slate-500"># 2. Berikan Izin Akses Penyimpanan HP</span>
+termux-setup-storage
+
+<span class="text-slate-500"># 3. Install Dependensi (Python, Git, FFmpeg, & Build Tools)</span>
+pkg install python git ffmpeg libjpeg-turbo libpng clang make cmake -y
+
+<span class="text-slate-500"># 4. Clone Repository Resmi rizzhd</span>
+git clone https://github.com/rizzgntng/rizzhd-enhancer.git
+cd rizzhd-enhancer
+
+<span class="text-slate-500"># 5. Install Modul AI & PyTorch Requirements</span>
+pip install --upgrade pip
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+pip install -r requirements.txt
+
+<span class="text-slate-500"># 6. Jalankan Tool HD Enhancer</span>
+python main.py --input /sdcard/Download/video_buram.mp4 --scale 4x --face-restore
+</code></pre>
+                </div>
+            </div>
+
+            <!-- Features Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
+                <div class="glass-card p-6 rounded-2xl border border-slate-800 space-y-3">
+                    <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <h3 class="text-base font-bold text-white">Ringan di Android</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">Dioptimalkan khusus untuk berjalan di Termux dengan dukungan CPU threading dan PyTorch CPU wheels.</p>
+                </div>
+
+                <div class="glass-card p-6 rounded-2xl border border-slate-800 space-y-3">
+                    <div class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400">
+                        <i class="fa-solid fa-video"></i>
+                    </div>
+                    <h3 class="text-base font-bold text-white">Enhance Video & Foto</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">Mendukung pemrosesan frame video MP4/MKV menggunakan FFmpeg dipadu AI Real-ESRGAN.</p>
+                </div>
+
+                <div class="glass-card p-6 rounded-2xl border border-slate-800 space-y-3">
+                    <div class="w-10 h-10 rounded-xl bg-pink-500/10 border border-pink-500/30 flex items-center justify-center text-pink-400">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <h3 class="text-base font-bold text-white">100% Offline & Aman</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">Proses rendering berjalan secara lokal di perangkat Anda tanpa upload file ke server luar.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="glass-panel border-t border-cyan-500/20 py-8 px-4 text-center text-xs text-slate-400 space-y-3">
+        <div class="flex justify-center space-x-6">
+            <a href="https://github.com/rizzgntng" target="_blank" class="hover:text-cyan-400 transition-colors">
+                <i class="fa-brands fa-github text-lg"></i> GitHub rizzgntng
+            </a>
+            <a href="https://t.me/" target="_blank" class="hover:text-cyan-400 transition-colors">
+                <i class="fa-brands fa-telegram text-lg"></i> Telegram Channel
+            </a>
+        </div>
+        <p>&copy; 2026 <span class="text-cyan-400 font-bold">rizzhd</span> Enhancer Tool. Crafted with passion by <span class="text-purple-400 font-semibold">rizzgntng</span>.</p>
+    </footer>
+
+    <!-- JavaScript for Simulator & Interactivity -->
+    <script>
+        // Before/After Slider Logic
+        const sliderWrapper = document.getElementById('slider-wrapper');
+        const afterWrapper = document.getElementById('img-after-wrapper');
+        const sliderHandle = document.getElementById('slider-handle');
+        let isDragging = false;
+
+        function updateSliderPosition(clientX) {
+            const rect = sliderWrapper.getBoundingClientRect();
+            let x = clientX - rect.left;
+            if (x < 0) x = 0;
+            if (x > rect.width) x = rect.width;
+            const percentage = (x / rect.width) * 100;
+            afterWrapper.style.width = percentage + '%';
+            sliderHandle.style.left = percentage + '%';
+        }
+
+        sliderWrapper.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            updateSliderPosition(e.clientX);
+        });
+
+        window.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            updateSliderPosition(e.clientX);
+        });
+
+        // Touch support for mobile
+        sliderWrapper.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            updateSliderPosition(e.touches[0].clientX);
+        });
+
+        window.addEventListener('touchend', () => {
+            isDragging = false;
+        });
+
+        window.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            updateSliderPosition(e.touches[0].clientX);
+        });
+
+        // Scale Button Selectors
+        const scaleBtns = document.querySelectorAll('.scale-btn');
+        const scaleBadge = document.getElementById('scale-badge');
+        
+        scaleBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                scaleBtns.forEach(b => {
+                    b.classList.remove('border-cyan-500', 'bg-cyan-500/20', 'text-cyan-300');
+                    b.classList.add('border-slate-700', 'bg-slate-900', 'text-slate-400');
+                });
+                btn.classList.remove('border-slate-700', 'bg-slate-900', 'text-slate-400');
+                btn.classList.add('border-cyan-500', 'bg-cyan-500/20', 'text-cyan-300');
+                
+                const scaleVal = btn.getAttribute('data-scale');
+                scaleBadge.textContent = `Mode: ${scaleVal.toUpperCase()} Resolution`;
+            });
+        });
+
+        // Process Simulation Button
+        const btnProcess = document.getElementById('btn-process');
+        const statusInfo = document.getElementById('status-info');
+
+        btnProcess.addEventListener('click', () => {
+            btnProcess.disabled = true;
+            btnProcess.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> MEMPROSES AI HD...`;
+            statusInfo.textContent = 'Rendering AI (Real-ESRGAN)...';
+            statusInfo.className = 'text-yellow-400 font-semibold animate-pulse';
+
+            setTimeout(() => {
+                btnProcess.disabled = false;
+                btnProcess.innerHTML = `<i class="fa-solid fa-circle-check"></i> BERHASIL DI-ENHANCE!`;
+                statusInfo.textContent = 'Selesai! Gambar siap diunduh.';
+                statusInfo.className = 'text-emerald-400 font-semibold';
+                
+                setTimeout(() => {
+                    btnProcess.innerHTML = `<i class="fa-solid fa-circle-play"></i> TERAPKAN PROSES HD`;
+                }, 3000);
+            }, 2500);
+        });
+
+        // Copy Termux Code Button
+        const copyBtn = document.getElementById('copy-btn');
+        const codeBlock = document.getElementById('code-block');
+
+        copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(codeBlock.innerText).then(() => {
+                const originalHTML = copyBtn.innerHTML;
+                copyBtn.innerHTML = `<i class="fa-solid fa-check text-emerald-400"></i> <span class="text-emerald-400">Berhasil Disalin!</span>`;
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalHTML;
+                }, 2000);
+            });
+        });
+
+        // Dropzone simulation
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                const fileName = e.target.files[0].name;
+                dropZone.innerHTML = `<i class="fa-solid fa-file-circle-check text-3xl text-emerald-400 mb-2"></i>
+                <p class="text-xs text-emerald-300 font-bold">${fileName}</p>
+                <p class="text-[10px] text-slate-400 mt-1">File siap diproses oleh simulator</p>`;
+            }
+        });
+    </script>
+</body>
+</html>
